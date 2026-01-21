@@ -10,6 +10,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.png" />
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,43 +26,71 @@
     .app {
       width: 100%;
       max-width: 420px;
-      background: #fff;
+      background: #ffffff;
       border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     }
 
-    h2 {
-      color: #07174E;
+    h1 {
       margin-top: 0;
+      color: #07174E;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .market-box {
       background: #fff6e6;
-      padding: 12px;
+      padding: 14px;
       border-radius: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
+      font-size: 16px;
     }
 
-    .up { color: green; font-weight: bold; }
-    .down { color: red; font-weight: bold; }
+    #marketChart {
+      width: 100%;
+      height: 220px;
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #C41B46;
-      color: #fff;
+      color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 16px;
-      margin-top: 12px;
+      margin-top: 16px;
+    }
+
+    .success {
+      margin-top: 10px;
+      color: green;
+      font-weight: bold;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
       margin-top: 12px;
+      font-size: 13px;
     }
 
     th, td {
@@ -78,17 +109,21 @@
 <body>
 
 <div class="app">
-  <h2>📉 Market Alert</h2>
+  <h1>📉 Market Alert</h1>
 
   <div id="marketData" class="market-box">
-    Loading market data...
+    Nifty: <b id="niftyVal">21570</b><br>
+    Sensex: <b id="sensexVal">71023</b>
   </div>
+
+  <!-- GRAPH -->
+  <canvas id="marketChart"></canvas>
 
   <h3>Set Alert</h3>
 
   <label>Select Market</label>
   <select id="market">
-    <option>Nifty 50</option>
+    <option>Nifty</option>
     <option>Sensex</option>
   </select>
 
@@ -96,11 +131,11 @@
   <input type="time" id="alertTime" />
 
   <label>Market Fall %</label>
-  <input type="number" id="fallPercent" />
+  <input type="number" id="fallPercent" placeholder="e.g. 3" />
 
   <button onclick="setAlert()">Set Alert</button>
 
-  <div id="statusBox">No alert set yet.</div>
+  <div id="statusBox"></div>
 
   <h3>Market History</h3>
   <table>
@@ -116,33 +151,79 @@
 </div>
 
 <script>
-  let nifty = 21500;
-  let sensex = 71000;
+  let nifty = 21570;
+  let sensex = 71023;
+
+  const labels = [];
+  const niftyData = [];
+  const sensexData = [];
+
+  const ctx = document.getElementById("marketChart").getContext("2d");
+  const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Nifty",
+          data: niftyData,
+          borderColor: "#0F9D58",
+          tension: 0.4
+        },
+        {
+          label: "Sensex",
+          data: sensexData,
+          borderColor: "#C41B46",
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
 
   function updateMarket() {
     nifty += (Math.random() - 0.5) * 200;
     sensex += (Math.random() - 0.5) * 600;
 
-    document.getElementById("marketData").innerHTML = `
-      Nifty: <b>${Math.round(nifty)}</b><br>
-      Sensex: <b>${Math.round(sensex)}</b>
-    `;
+    nifty = Math.round(nifty);
+    sensex = Math.round(sensex);
+
+    document.getElementById("niftyVal").innerText = nifty;
+    document.getElementById("sensexVal").innerText = sensex;
+
+    const time = new Date().toLocaleTimeString();
+
+    labels.push(time);
+    niftyData.push(nifty);
+    sensexData.push(sensex);
+
+    if (labels.length > 10) {
+      labels.shift();
+      niftyData.shift();
+      sensexData.shift();
+    }
+
+    chart.update();
 
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${new Date().toLocaleTimeString()}</td>
-      <td>${Math.round(nifty)}</td>
-      <td>${Math.round(sensex)}</td>
+      <td>${time}</td>
+      <td>${nifty}</td>
+      <td>${sensex}</td>
     `;
     document.getElementById("historyTable").prepend(row);
   }
 
   function setAlert() {
-    document.getElementById("statusBox").innerText = "✅ Alert set successfully";
+    document.getElementById("statusBox").innerHTML =
+      "<div class='success'>✅ Alert set successfully</div>";
   }
 
   updateMarket();
-  setInterval(updateMarket, 300000);
+  setInterval(updateMarket, 300000); // 5 minutes
 </script>
 
 </body>
