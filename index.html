@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.png" />
 
-  <!-- Chart.js -->
+  <!-- Chart.js MUST be before script -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -45,10 +45,17 @@
       font-size: 16px;
     }
 
-    #marketChart {
+    /* 🔴 CRITICAL FIX */
+    .chart-wrap {
+      position: relative;
       width: 100%;
-      height: 220px;
+      height: 240px;
       margin: 20px 0;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
     }
 
     label {
@@ -63,7 +70,6 @@
       margin-top: 4px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 14px;
     }
 
     button {
@@ -75,13 +81,6 @@
       border-radius: 14px;
       font-size: 16px;
       margin-top: 16px;
-      cursor: pointer;
-    }
-
-    .success {
-      margin-top: 10px;
-      color: green;
-      font-weight: bold;
     }
 
     table {
@@ -101,6 +100,12 @@
       background: #07174E;
       color: white;
     }
+
+    .success {
+      margin-top: 10px;
+      color: green;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -114,15 +119,12 @@
     Sensex: <b id="sensexVal">--</b>
   </div>
 
-  <canvas id="marketChart"></canvas>
+  <!-- 🔴 GRAPH CONTAINER -->
+  <div class="chart-wrap">
+    <canvas id="marketChart"></canvas>
+  </div>
 
   <h3>Set Alert</h3>
-
-  <label>Select Market</label>
-  <select>
-    <option>Nifty</option>
-    <option>Sensex</option>
-  </select>
 
   <label>Alert Time (IST)</label>
   <input type="time">
@@ -148,43 +150,54 @@
 
 <script>
 /* 🔴 PUT YOUR GOOGLE SHEET ID HERE */
-const SHEET_ID = "PASTE_YOUR_SHEET_ID_HERE";
-
-/* JSON endpoint */
+const SHEET_ID = "1QRvMEq1WycUE24UGM5QwKdPACIDDEfQDHbjjixDez3k";
 const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
 const labels = [];
 const niftyData = [];
 const sensexData = [];
 
-/* Init chart */
-const ctx = document.getElementById("marketChart").getContext("2d");
-const chart = new Chart(ctx, {
-  type: "line",
-  data: {
-    labels,
-    datasets: [
-      {
-        label: "Nifty",
-        data: niftyData,
-        borderColor: "#0F9D58",
-        tension: 0.4
-      },
-      {
-        label: "Sensex",
-        data: sensexData,
-        borderColor: "#C41B46",
-        tension: 0.4
+let chart;
+
+/* INIT CHART AFTER PAGE LOAD */
+window.addEventListener("load", () => {
+  const ctx = document.getElementById("marketChart").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Nifty",
+          data: niftyData,
+          borderColor: "#0F9D58",
+          borderWidth: 2,
+          tension: 0.4
+        },
+        {
+          label: "Sensex",
+          data: sensexData,
+          borderColor: "#C41B46",
+          borderWidth: 2,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true }
       }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false
-  }
+    }
+  });
+
+  updateMarket();
+  setInterval(updateMarket, 300000); // 5 min
 });
 
-/* REAL DATA FETCH */
+/* FETCH REAL DATA */
 async function updateMarket() {
   try {
     const res = await fetch(SHEET_URL);
@@ -192,11 +205,6 @@ async function updateMarket() {
 
     const nifty = Number(data[0].nifty);
     const sensex = Number(data[0].sensex);
-
-    if (!nifty || !sensex) {
-      console.error("Sheet data invalid", data);
-      return;
-    }
 
     document.getElementById("niftyVal").innerText = nifty;
     document.getElementById("sensexVal").innerText = sensex;
@@ -223,8 +231,8 @@ async function updateMarket() {
     `;
     document.getElementById("historyTable").prepend(row);
 
-  } catch (err) {
-    console.error("Fetch failed", err);
+  } catch (e) {
+    console.error("Fetch error", e);
   }
 }
 
@@ -232,12 +240,7 @@ function setAlert() {
   document.getElementById("statusBox").innerHTML =
     "<div class='success'>✅ Alert set successfully</div>";
 }
-
-/* Load + refresh */
-updateMarket();
-setInterval(updateMarket, 300000);
 </script>
-
 
 </body>
 </html>
