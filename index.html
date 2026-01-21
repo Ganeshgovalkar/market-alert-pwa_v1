@@ -1,247 +1,149 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2761
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww35640\viewh19140\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Market Alert</title>
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html>\
-<head>\
-  <meta charset="UTF-8">\
-  <title>Market Alert</title>\
-\
-  <!-- Mobile / PWA settings -->\
-  <meta name="viewport" content="width=device-width, initial-scale=1">\
-  <meta name="theme-color" content="#07174E">\
-  <link rel="manifest" href="manifest.json">\
-  <link rel="apple-touch-icon" href="icon.png">\
-\
-  <style>\
-    body \{\
-      font-family: Arial, sans-serif;\
-      background: #f4f6ff;\
-      display: flex;\
-      justify-content: center;\
-      padding: 20px;\
-    \}\
-\
-    .app \{\
-      width: 100%;\
-      max-width: 520px;\
-      background: white;\
-      padding: 16px;\
-      border-radius: 14px;\
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);\
-    \}\
-\
-    h2 \{ color: #07174E; \}\
-\
-    .market-box \{\
-      padding: 12px;\
-      background: #fff6e6;\
-      border-radius: 8px;\
-      margin-bottom: 10px;\
-    \}\
-\
-    .up \{ color: green; font-weight: bold; \}\
-    .down \{ color: red; font-weight: bold; \}\
-\
-    table \{\
-      width: 100%;\
-      border-collapse: collapse;\
-      font-size: 12px;\
-    \}\
-\
-    th, td \{\
-      border: 1px solid #ddd;\
-      padding: 6px;\
-      text-align: center;\
-    \}\
-\
-    th \{\
-      background: #07174E;\
-      color: white;\
-    \}\
-\
-    canvas \{\
-      width: 100%;\
-      height: 220px;\
-    \}\
-  </style>\
-</head>\
-\
-<body>\
-\
-<div class="app">\
-  <h2>\uc0\u55357 \u56521  Market Dip Alert</h2>\
-\
-  <div id="marketData" class="market-box">\
-    Loading market data...\
-  </div>\
-\
-  <canvas id="marketChart"></canvas>\
-\
-  <h3>Set Alert</h3>\
-\
-  <label>Select Market</label>\
-  <select id="market">\
-    <option value="nifty">Nifty 50</option>\
-    <option value="sensex">Sensex</option>\
-  </select>\
-\
-  <label>Set Alert Time (IST)</label>\
-  <input type="time" id="alertTime">\
-\
-  <label>Market Fall %</label>\
-  <input type="number" id="fallPercent" placeholder="e.g. 3">\
-\
-  <button id="setBtn">Set Alert</button>\
-\
-  <div class="status" id="statusBox">\
-    No alert set yet.\
-  </div>\
-\
-  <h3>Market History</h3>\
-  <table>\
-    <thead>\
-      <tr>\
-        <th>Time</th>\
-        <th>Nifty</th>\
-        <th>Nifty %</th>\
-        <th>Sensex</th>\
-        <th>Sensex %</th>\
-      </tr>\
-    </thead>\
-    <tbody id="historyTable"></tbody>\
-  </table>\
-</div>\
-\
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\
-\
-<script>\
-// Register service worker for PWA\
-if ("serviceWorker" in navigator) \{\
-  navigator.serviceWorker.register("service-worker.js");\
-\}\
-\
-// Simulated market data (same logic as your CodePen)\
-let lastNifty = 21500;\
-let lastSensex = 71000;\
-\
-let history = [];\
-let labels = [];\
-let niftySeries = [];\
-let sensexSeries = [];\
-\
-const ctx = document.getElementById("marketChart").getContext("2d");\
-const chart = new Chart(ctx, \{\
-  type: "line",\
-  data: \{\
-    labels: labels,\
-    datasets: [\
-      \{ label: "Nifty", data: niftySeries, borderColor: "blue", fill: false \},\
-      \{ label: "Sensex", data: sensexSeries, borderColor: "purple", fill: false \}\
-    ]\
-  \},\
-  options: \{ responsive: true \}\
-\});\
-\
-function getCurrentTime() \{\
-  return new Date().toLocaleTimeString("en-IN", \{\
-    hour: "2-digit",\
-    minute: "2-digit",\
-    second: "2-digit"\
-  \});\
-\}\
-\
-function updateMarketData() \{\
-  const niftyChange = (Math.random() - 0.5) * 200;\
-  const sensexChange = (Math.random() - 0.5) * 600;\
-\
-  lastNifty = Math.max(18000, lastNifty + niftyChange);\
-  lastSensex = Math.max(60000, lastSensex + sensexChange);\
-\
-  const niftyPercent = (niftyChange / lastNifty) * 100;\
-  const sensexPercent = (sensexChange / lastSensex) * 100;\
-  const time = getCurrentTime();\
-\
-  const niftyClass = niftyPercent >= 0 ? "up" : "down";\
-  const sensexClass = sensexPercent >= 0 ? "up" : "down";\
-\
-  document.getElementById("marketData").innerHTML = `\
-  \uc0\u55357 \u56522  <b>Market Snapshot</b><br><br>\
-  Nifty 50: <span class="$\{niftyClass\}">\
-  $\{lastNifty.toFixed(0)\} ($\{niftyPercent.toFixed(2)\}%)</span><br>\
-  Sensex: <span class="$\{sensexClass\}">\
-  $\{lastSensex.toFixed(0)\} ($\{sensexPercent.toFixed(2)\}%)</span><br><br>\
-  \uc0\u9201  Last updated: $\{time\}\
-  `;\
-\
-  history.push(\{\
-    time,\
-    nifty: lastNifty.toFixed(0),\
-    niftyPct: niftyPercent.toFixed(2),\
-    sensex: lastSensex.toFixed(0),\
-    sensexPct: sensexPercent.toFixed(2)\
-  \});\
-\
-  if (history.length > 10) history.shift();\
-\
-  renderHistory();\
-\
-  labels.push(time);\
-  niftySeries.push(lastNifty);\
-  sensexSeries.push(lastSensex);\
-\
-  if (labels.length > 10) \{\
-    labels.shift();\
-    niftySeries.shift();\
-    sensexSeries.shift();\
-  \}\
-\
-  chart.update();\
-\}\
-\
-function renderHistory() \{\
-  const tbody = document.getElementById("historyTable");\
-  tbody.innerHTML = "";\
-\
-  history.forEach(row => \{\
-    const tr = document.createElement("tr");\
-    tr.innerHTML = `\
-      <td>$\{row.time\}</td>\
-      <td>$\{row.nifty\}</td>\
-      <td>$\{row.niftyPct\}%</td>\
-      <td>$\{row.sensex\}</td>\
-      <td>$\{row.sensexPct\}%</td>\
-    `;\
-    tbody.appendChild(tr);\
-  \});\
-\}\
-\
-document.getElementById("setBtn").addEventListener("click", () => \{\
-  const market = document.getElementById("market").value;\
-  const time = document.getElementById("alertTime").value;\
-  const percent = document.getElementById("fallPercent").value;\
-\
-  if (!time || !percent) \{\
-    alert("Please select time and fall %");\
-    return;\
-  \}\
-\
-  document.getElementById("statusBox").innerHTML = `\
-  \uc0\u9989  Alert Set!<br>\
-  Market: <b>$\{market.toUpperCase()\}</b><br>\
-  Trigger: <b>$\{percent\}% fall</b><br>\
-  Time: <b>$\{time\} IST</b>\
-  `;\
-\});\
-\
-updateMarketData();\
-setInterval(updateMarketData, 300000);\
-</script>\
-\
-</body>\
-</html>\
-}
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07174E" />
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.png" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6ff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h2 {
+      color: #07174E;
+      margin-top: 0;
+    }
+
+    .market-box {
+      background: #fff6e6;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .up { color: green; font-weight: bold; }
+    .down { color: red; font-weight: bold; }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #C41B46;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background: #07174E;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+  <h2>📉 Market Alert</h2>
+
+  <div id="marketData" class="market-box">
+    Loading market data...
+  </div>
+
+  <h3>Set Alert</h3>
+
+  <label>Select Market</label>
+  <select id="market">
+    <option>Nifty 50</option>
+    <option>Sensex</option>
+  </select>
+
+  <label>Alert Time (IST)</label>
+  <input type="time" id="alertTime" />
+
+  <label>Market Fall %</label>
+  <input type="number" id="fallPercent" />
+
+  <button onclick="setAlert()">Set Alert</button>
+
+  <div id="statusBox">No alert set yet.</div>
+
+  <h3>Market History</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Nifty</th>
+        <th>Sensex</th>
+      </tr>
+    </thead>
+    <tbody id="historyTable"></tbody>
+  </table>
+</div>
+
+<script>
+  let nifty = 21500;
+  let sensex = 71000;
+
+  function updateMarket() {
+    nifty += (Math.random() - 0.5) * 200;
+    sensex += (Math.random() - 0.5) * 600;
+
+    document.getElementById("marketData").innerHTML = `
+      Nifty: <b>${Math.round(nifty)}</b><br>
+      Sensex: <b>${Math.round(sensex)}</b>
+    `;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date().toLocaleTimeString()}</td>
+      <td>${Math.round(nifty)}</td>
+      <td>${Math.round(sensex)}</td>
+    `;
+    document.getElementById("historyTable").prepend(row);
+  }
+
+  function setAlert() {
+    document.getElementById("statusBox").innerText = "✅ Alert set successfully";
+  }
+
+  updateMarket();
+  setInterval(updateMarket, 300000);
+</script>
+
+</body>
+</html>
