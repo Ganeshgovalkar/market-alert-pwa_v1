@@ -1,23 +1,143 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2761
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+// -------------------------------
+// SIMULATED MARKET DATA (for now)
+// -------------------------------
+let lastNifty = 21500;
+let lastSensex = 71000;
 
-\f0\fs24 \cf0 \{\
-  "name": "Market Alert",\
-  "short_name": "Market",\
-  "start_url": "index.html",\
-  "display": "standalone",\
-  "background_color": "#f4f6ff",\
-  "theme_color": "#07174E",\
-  "icons": [\
-    \{\
-      "src": "icon.png",\
-      "sizes": "512x512",\
-      "type": "image/png"\
-    \}\
-  ]\
-\}\
+let history = [];
+let labels = [];
+let niftySeries = [];
+let sensexSeries = [];
+
+// Create chart
+const ctx = document.getElementById("marketChart").getContext("2d");
+const chart = new window.Chart(ctx, {
+  type: "line",
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: "Nifty",
+        data: niftySeries,
+        borderColor: "blue",
+        fill: false
+      },
+      {
+        label: "Sensex",
+        data: sensexSeries,
+        borderColor: "purple",
+        fill: false
+      }
+    ]
+  },
+  options: {
+    responsive: true
+  }
+});
+
+function getCurrentTime() {
+  const now = new Date();
+  return now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
 }
+
+function updateMarketData() {
+  const niftyChange = (Math.random() - 0.5) * 200;
+  const sensexChange = (Math.random() - 0.5) * 600;
+
+  lastNifty = Math.max(18000, lastNifty + niftyChange);
+  lastSensex = Math.max(60000, lastSensex + sensexChange);
+
+  const niftyPercent = (niftyChange / lastNifty) * 100;
+  const sensexPercent = (sensexChange / lastSensex) * 100;
+
+  const time = getCurrentTime();
+
+  // Color logic
+  const niftyClass = niftyPercent >= 0 ? "up" : "down";
+  const sensexClass = sensexPercent >= 0 ? "up" : "down";
+
+  document.getElementById("marketData").innerHTML = `
+  📊 <b>Market Snapshot</b><br><br>
+  Nifty 50: <span class="${niftyClass}">
+  ${lastNifty.toFixed(0)} (${niftyPercent.toFixed(2)}%)</span><br>
+  Sensex: <span class="${sensexClass}">
+  ${lastSensex.toFixed(0)} (${sensexPercent.toFixed(2)}%)</span><br><br>
+  ⏱ Last updated: ${time}
+  `;
+
+  // Store history
+  history.push({
+    time,
+    nifty: lastNifty.toFixed(0),
+    niftyPct: niftyPercent.toFixed(2),
+    sensex: lastSensex.toFixed(0),
+    sensexPct: sensexPercent.toFixed(2)
+  });
+
+  // Keep only last 10 points
+  if (history.length > 10) history.shift();
+
+  // Update table
+  renderHistory();
+
+  // Update chart
+  labels.push(time);
+  niftySeries.push(lastNifty);
+  sensexSeries.push(lastSensex);
+
+  if (labels.length > 10) {
+    labels.shift();
+    niftySeries.shift();
+    sensexSeries.shift();
+  }
+
+  chart.update();
+}
+
+function renderHistory() {
+  const tbody = document.getElementById("historyTable");
+  tbody.innerHTML = "";
+
+  history.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.time}</td>
+      <td>${row.nifty}</td>
+      <td>${row.niftyPct}%</td>
+      <td>${row.sensex}</td>
+      <td>${row.sensexPct}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---------- ALERT LOGIC (ready for WhatsApp later) ----------
+document.getElementById("setBtn").addEventListener("click", () => {
+  const market = document.getElementById("market").value;
+  const time = document.getElementById("alertTime").value;
+  const percent = document.getElementById("fallPercent").value;
+
+  if (!time || !percent) {
+    alert("Please select time and fall %");
+    return;
+  }
+
+  localStorage.setItem("market", market);
+  localStorage.setItem("alertTime", time);
+  localStorage.setItem("fallPercent", percent);
+
+  document.getElementById("statusBox").innerHTML = `
+  ✅ Alert Set!<br>
+  Market: <b>${market.toUpperCase()}</b><br>
+  Trigger: <b>${percent}% fall</b><br>
+  Time: <b>${time} IST</b>
+  `;
+});
+
+// Start + refresh every 5 min
+updateMarketData();
+setInterval(updateMarketData, 300000);
