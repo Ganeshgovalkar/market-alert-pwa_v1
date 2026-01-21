@@ -1,192 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Market Alert</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#07174E">
-
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.png">
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6ff;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app {
-      width: 100%;
-      max-width: 420px;
-      background: #fff;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-    }
-
-    h1 { color: #07174E; margin-top: 0; }
-
-    .market-box {
-      background: #fff6e6;
-      padding: 14px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      font-size: 16px;
-    }
-
-    #marketChart {
-      width: 100%;
-      height: 220px;
-      margin: 20px 0;
-    }
-
-    label { font-weight: bold; margin-top: 10px; display: block; }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 4px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #C41B46;
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      margin-top: 16px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      font-size: 13px;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      text-align: center;
-    }
-
-    th {
-      background: #07174E;
-      color: white;
-    }
-
-    .success {
-      margin-top: 10px;
-      color: green;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="app">
-  <h1>📉 Market Alert</h1>
-
-  <div class="market-box">
-    Nifty: <b id="niftyVal">--</b><br>
-    Sensex: <b id="sensexVal">--</b>
-  </div>
-
-  <canvas id="marketChart"></canvas>
-
-  <h3>Set Alert</h3>
-
-  <label>Select Market</label>
-  <select>
-    <option>Nifty</option>
-    <option>Sensex</option>
-  </select>
-
-  <label>Alert Time (IST)</label>
-  <input type="time">
-
-  <label>Market Fall %</label>
-  <input type="number" placeholder="e.g. 3">
-
-  <button onclick="setAlert()">Set Alert</button>
-  <div id="statusBox"></div>
-
-  <h3>Market History</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Nifty</th>
-        <th>Sensex</th>
-      </tr>
-    </thead>
-    <tbody id="historyTable"></tbody>
-  </table>
-</div>
-
 <script>
-/* 🔴 CHANGE ONLY THIS */
+/* 🔴 STEP 1: put your Google Sheet ID here */
 const SHEET_ID = "1QRvMEq1WycUE24UGM5QwKdPACIDDEfQDHbjjixDez3k";
 
-/* Google Sheets JSON URL */
-const SHEET_URL =
-  `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
+/* Public JSON endpoint */
+const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
 const labels = [];
 const niftyData = [];
 const sensexData = [];
 
+/* Init chart */
 const ctx = document.getElementById("marketChart").getContext("2d");
 const chart = new Chart(ctx, {
   type: "line",
   data: {
     labels,
     datasets: [
-      { label: "Nifty", data: niftyData, borderColor: "#0F9D58", tension: 0.4 },
-      { label: "Sensex", data: sensexData, borderColor: "#C41B46", tension: 0.4 }
+      {
+        label: "Nifty",
+        data: niftyData,
+        borderColor: "#0F9D58",
+        tension: 0.4
+      },
+      {
+        label: "Sensex",
+        data: sensexData,
+        borderColor: "#C41B46",
+        tension: 0.4
+      }
     ]
   },
-  options: { responsive: true, maintainAspectRatio: false }
+  options: {
+    responsive: true,
+    maintainAspectRatio: false
+  }
 });
 
-async function fetchMarket() {
-  const res = await fetch(SHEET_URL);
-  const data = await res.json();
+/* Fetch REAL market data */
+async function updateMarket() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
 
-  const nifty = Number(data.find(r => r.nifty)?.nifty);
-  const sensex = Number(data.find(r => r.sensex)?.sensex);
+    const nifty = Number(data.find(r => r.nifty)?.nifty);
+    const sensex = Number(data.find(r => r.sensex)?.sensex);
 
-  document.getElementById("niftyVal").innerText = nifty;
-  document.getElementById("sensexVal").innerText = sensex;
+    if (!nifty || !sensex) return;
 
-  const time = new Date().toLocaleTimeString();
-  labels.push(time);
-  niftyData.push(nifty);
-  sensexData.push(sensex);
+    document.getElementById("niftyVal").innerText = nifty;
+    document.getElementById("sensexVal").innerText = sensex;
 
-  if (labels.length > 10) {
-    labels.shift();
-    niftyData.shift();
-    sensexData.shift();
+    const time = new Date().toLocaleTimeString();
+
+    labels.push(time);
+    niftyData.push(nifty);
+    sensexData.push(sensex);
+
+    if (labels.length > 10) {
+      labels.shift();
+      niftyData.shift();
+      sensexData.shift();
+    }
+
+    chart.update();
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${time}</td>
+      <td>${nifty}</td>
+      <td>${sensex}</td>
+    `;
+    document.getElementById("historyTable").prepend(row);
+
+  } catch (err) {
+    console.error("Market fetch failed", err);
   }
-
-  chart.update();
-
-  const row = document.createElement("tr");
-  row.innerHTML = `<td>${time}</td><td>${nifty}</td><td>${sensex}</td>`;
-  document.getElementById("historyTable").prepend(row);
 }
 
 function setAlert() {
@@ -194,9 +82,7 @@ function setAlert() {
     "<div class='success'>✅ Alert set successfully</div>";
 }
 
-fetchMarket();
-setInterval(fetchMarket, 300000); // 5 minutes
+/* Initial + every 5 min */
+updateMarket();
+setInterval(updateMarket, 300000);
 </script>
-
-</body>
-</html>
