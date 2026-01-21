@@ -1,5 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Market Alert</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07174E" />
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.png" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6ff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      color: #07174E;
+    }
+
+    .market-box {
+      background: #fff6e6;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+
+    #marketChart {
+      width: 100%;
+      height: 220px;
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #C41B46;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+
+    .success {
+      margin-top: 10px;
+      color: green;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background: #07174E;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+  <h1>📉 Market Alert</h1>
+
+  <div class="market-box">
+    Nifty: <b id="niftyVal">--</b><br>
+    Sensex: <b id="sensexVal">--</b>
+  </div>
+
+  <canvas id="marketChart"></canvas>
+
+  <h3>Set Alert</h3>
+
+  <label>Select Market</label>
+  <select>
+    <option>Nifty</option>
+    <option>Sensex</option>
+  </select>
+
+  <label>Alert Time (IST)</label>
+  <input type="time">
+
+  <label>Market Fall %</label>
+  <input type="number" placeholder="e.g. 3">
+
+  <button onclick="setAlert()">Set Alert</button>
+  <div id="statusBox"></div>
+
+  <h3>Market History</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Nifty</th>
+        <th>Sensex</th>
+      </tr>
+    </thead>
+    <tbody id="historyTable"></tbody>
+  </table>
+</div>
+
 <script>
-/* 🔴 STEP 1: put your Google Sheet ID here */
+/* 🔴 REPLACE WITH YOUR GOOGLE SHEET ID */
 const SHEET_ID = "1QRvMEq1WycUE24UGM5QwKdPACIDDEfQDHbjjixDez3k";
 
 /* Public JSON endpoint */
@@ -36,7 +184,7 @@ const chart = new Chart(ctx, {
   }
 });
 
-/* Fetch REAL market data */
+/* Fetch REAL data */
 async function updateMarket() {
   try {
     const res = await fetch(SHEET_URL);
@@ -82,7 +230,10 @@ function setAlert() {
     "<div class='success'>✅ Alert set successfully</div>";
 }
 
-/* Initial + every 5 min */
+/* Initial load + every 5 min */
 updateMarket();
 setInterval(updateMarket, 300000);
 </script>
+
+</body>
+</html>
