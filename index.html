@@ -147,10 +147,10 @@
 </div>
 
 <script>
-/* 🔴 REPLACE WITH YOUR GOOGLE SHEET ID */
-const SHEET_ID = "1QRvMEq1WycUE24UGM5QwKdPACIDDEfQDHbjjixDez3k";
+/* 🔴 PUT YOUR GOOGLE SHEET ID HERE */
+const SHEET_ID = "PASTE_YOUR_SHEET_ID_HERE";
 
-/* Public JSON endpoint */
+/* JSON endpoint */
 const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
 const labels = [];
@@ -184,16 +184,19 @@ const chart = new Chart(ctx, {
   }
 });
 
-/* Fetch REAL data */
+/* REAL DATA FETCH */
 async function updateMarket() {
   try {
     const res = await fetch(SHEET_URL);
     const data = await res.json();
 
-    const nifty = Number(data.find(r => r.nifty)?.nifty);
-    const sensex = Number(data.find(r => r.sensex)?.sensex);
+    const nifty = Number(data[0].nifty);
+    const sensex = Number(data[0].sensex);
 
-    if (!nifty || !sensex) return;
+    if (!nifty || !sensex) {
+      console.error("Sheet data invalid", data);
+      return;
+    }
 
     document.getElementById("niftyVal").innerText = nifty;
     document.getElementById("sensexVal").innerText = sensex;
@@ -221,7 +224,7 @@ async function updateMarket() {
     document.getElementById("historyTable").prepend(row);
 
   } catch (err) {
-    console.error("Market fetch failed", err);
+    console.error("Fetch failed", err);
   }
 }
 
@@ -230,10 +233,11 @@ function setAlert() {
     "<div class='success'>✅ Alert set successfully</div>";
 }
 
-/* Initial load + every 5 min */
+/* Load + refresh */
 updateMarket();
 setInterval(updateMarket, 300000);
 </script>
+
 
 </body>
 </html>
