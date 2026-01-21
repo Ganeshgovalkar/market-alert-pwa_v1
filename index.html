@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.png" />
 
-  <!-- Chart.js MUST be before script -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -45,24 +45,18 @@
       font-size: 16px;
     }
 
-    /* 🔴 CRITICAL FIX */
+    /* 🔴 FIXED HEIGHT CONTAINER */
     .chart-wrap {
-      position: relative;
       width: 100%;
       height: 240px;
       margin: 20px 0;
     }
 
-   .chart-wrap {
-  width: 100%;
-  height: 240px;   /* fixed height */
-  margin: 20px 0;
-}
-
-#marketChart {
-  display: block;
-}
-
+    #marketChart {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
     label {
       display: block;
@@ -70,7 +64,7 @@
       font-weight: bold;
     }
 
-    input, select {
+    input {
       width: 100%;
       padding: 10px;
       margin-top: 4px;
@@ -87,6 +81,7 @@
       border-radius: 14px;
       font-size: 16px;
       margin-top: 16px;
+      cursor: pointer;
     }
 
     table {
@@ -125,7 +120,7 @@
     Sensex: <b id="sensexVal">--</b>
   </div>
 
-  <!-- 🔴 GRAPH CONTAINER -->
+  <!-- GRAPH -->
   <div class="chart-wrap">
     <canvas id="marketChart"></canvas>
   </div>
@@ -156,7 +151,7 @@
 
 <script>
 /* 🔴 PUT YOUR GOOGLE SHEET ID HERE */
-const SHEET_ID = "1QRvMEq1WycUE24UGM5QwKdPACIDDEfQDHbjjixDez3k";
+const SHEET_ID = "PASTE_YOUR_SHEET_ID_HERE";
 const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/Sheet1`;
 
 const labels = [];
@@ -165,7 +160,7 @@ const sensexData = [];
 
 let chart;
 
-/* INIT CHART AFTER PAGE LOAD */
+/* INIT AFTER PAGE LOAD */
 window.addEventListener("load", () => {
   const ctx = document.getElementById("marketChart").getContext("2d");
 
@@ -193,6 +188,8 @@ window.addEventListener("load", () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
+      resizeDelay: 200,
       plugins: {
         legend: { display: true }
       }
@@ -237,8 +234,8 @@ async function updateMarket() {
     `;
     document.getElementById("historyTable").prepend(row);
 
-  } catch (e) {
-    console.error("Fetch error", e);
+  } catch (err) {
+    console.error("Fetch failed", err);
   }
 }
 
