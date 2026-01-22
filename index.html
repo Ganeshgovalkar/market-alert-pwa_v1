@@ -206,8 +206,23 @@ async function updateMarket() {
     const res = await fetch(SHEET_URL);
     const data = await res.json();
 
-    const nifty = Number(data[0].nifty);
-    const sensex = Number(data[0].sensex);
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error("No data from sheet");
+      return;
+    }
+
+    // 🔴 Robust key handling
+    const row = data[0];
+
+    const nifty =
+      Number(row.nifty || row.Nifty || row[" nifty "] || row["NIFTY"]);
+    const sensex =
+      Number(row.sensex || row.Sensex || row[" sensex "] || row["SENSEX"]);
+
+    if (isNaN(nifty) || isNaN(sensex)) {
+      console.error("Invalid numbers", row);
+      return;
+    }
 
     document.getElementById("niftyVal").innerText = nifty;
     document.getElementById("sensexVal").innerText = sensex;
@@ -226,18 +241,19 @@ async function updateMarket() {
 
     chart.update();
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
+    const rowEl = document.createElement("tr");
+    rowEl.innerHTML = `
       <td>${time}</td>
       <td>${nifty}</td>
       <td>${sensex}</td>
     `;
-    document.getElementById("historyTable").prepend(row);
+    document.getElementById("historyTable").prepend(rowEl);
 
   } catch (err) {
-    console.error("Fetch failed", err);
+    console.error("Fetch error", err);
   }
 }
+
 
 function setAlert() {
   document.getElementById("statusBox").innerHTML =
